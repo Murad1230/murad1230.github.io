@@ -95,6 +95,11 @@ input.num:focus{border-color:var(--c,var(--a));box-shadow:0 0 0 3px color-mix(in
 @keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
 .tag{flex:0 0 auto;padding:8px 12px}
 .tag:hover{color:var(--a)}
+.tw{display:inline-flex;align-items:center;gap:2px;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 12px;font-weight:700;transition:background .2s,border-color .2s}
+.tw.locked{border-color:var(--b);background:color-mix(in srgb,var(--b) 12%,var(--chip))}
+.tw button{flex:0 0 auto;min-width:0;border:0;background:transparent;padding:6px 7px;border-radius:50%;font-size:14px}
+.tw .xx:disabled{opacity:.25;cursor:not-allowed}
+.chip.fix{box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--c) 55%,transparent)}
 .pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:9px 16px;font-size:13px;font-weight:600;border-radius:999px;border:0;color:#fff;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:0 4px 14px rgba(0,0,0,.22)}
 .pill .ic{display:inline-block;font-size:15px;transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
 .pill:hover .ic,.pill.open .ic{transform:rotate(120deg)}
@@ -113,6 +118,7 @@ input.num:focus{border-color:var(--c,var(--a));box-shadow:0 0 0 3px color-mix(in
 <div class="edit" id="edit">
   <div class="lbl" id="tRm"></div>
   <div class="chips" id="sugList"></div>
+  <button class="go" style="--c:var(--b);margin-top:10px" id="sugReset"></button>
   <div class="lbl" id="tNew"></div>
   <div class="row"><input class="num" id="sugNew" type="text" inputmode="text" placeholder="15"><button class="go" style="--c:var(--a)" id="sugAdd"></button><button class="go" style="--c:var(--muted)" id="sugDone"></button></div>
 </div>
@@ -130,14 +136,14 @@ input.num:focus{border-color:var(--c,var(--a));box-shadow:0 0 0 3px color-mix(in
 
 <script>
 var I={
-bn:{title:"কার্ড পয়েন্ট কাউন্টার",sug:"সাজেশন",rm:"সাজেশন বাদ দিতে চিপে ট্যাপ করুন",nw:"নতুন সাজেশন যোগ করুন (যেমন 15 বা -3)",add:"যোগ",done:"হয়ে গেছে",nameph:"দলের নাম",own:"নিজের পয়েন্ট",ahead:"পয়েন্ট এগিয়ে",behind:"পয়েন্ট পিছিয়ে",even:"সমান",undo:"আগের অবস্থায়",newg:"নতুন গেম",sure:"নিশ্চিত? আবার ট্যাপ করুন",hist:"হিস্টরি",none:"এখনো কোনো পয়েন্ট নেই",by:"তৈরি করেছেন",dn:["টিম এ","টিম বি"]},
-en:{title:"Card Point Counter",sug:"Suggestions",rm:"Tap a chip to remove it",nw:"Add a new suggestion (e.g. 15 or -3)",add:"Add",done:"Done",nameph:"Team name",own:"Custom points",ahead:"points ahead",behind:"points behind",even:"Tied",undo:"Undo",newg:"New game",sure:"Sure? Tap again",hist:"History",none:"No points yet",by:"Made by",dn:["Team A","Team B"]}};
-var DEF={names:["",""],sugs:[1,2,5,10,20,-5],hist:[],lang:"bn",theme:"auto"};
+bn:{title:"কার্ড পয়েন্ট কাউন্টার",sug:"সাজেশন",rm:"সাজেশন বাদ দিতে চিপে ট্যাপ করুন",nw:"নতুন সাজেশন যোগ করুন (যেমন 15 বা -3)",add:"যোগ",done:"হয়ে গেছে",rst:"ডিফল্ট ফিরিয়ে আনুন",nameph:"দলের নাম",own:"নিজের পয়েন্ট",ahead:"পয়েন্ট এগিয়ে",behind:"পয়েন্ট পিছিয়ে",even:"সমান",undo:"আগের অবস্থায়",newg:"নতুন গেম",sure:"নিশ্চিত? আবার ট্যাপ করুন",hist:"হিস্টরি",none:"এখনো কোনো পয়েন্ট নেই",by:"তৈরি করেছেন",dn:["টিম এ","টিম বি"]},
+en:{title:"Card Point Counter",sug:"Suggestions",rm:"Tap a chip to remove it",nw:"Add a new suggestion (e.g. 15 or -3)",add:"Add",done:"Done",rst:"Restore defaults",nameph:"Team name",own:"Custom points",ahead:"points ahead",behind:"points behind",even:"Tied",undo:"Undo",newg:"New game",sure:"Sure? Tap again",hist:"History",none:"No points yet",by:"Made by",dn:["Team A","Team B"]}};
+var DEF={names:["",""],sugs:[4,7,8,13,-4,-7,-8,-10],v:2,hist:[],lang:"bn",theme:"auto"};
 var S=load(),T=[],shown=[0,0];
 function load(){var o=null;try{var r=localStorage.getItem("cardpoints");if(r)o=JSON.parse(r)}catch(e){}
   if(!o||!o.sugs||!o.hist)o=JSON.parse(JSON.stringify(DEF));
   o.names=(o.names||["",""]).map(function(n){return(n==="Team A"||n==="Team B")?"":n});
-  if(!o.lang)o.lang="bn";if(!o.theme)o.theme="auto";return o}
+  if(!o.lang)o.lang="bn";if(!o.theme)o.theme="auto";if(o.v!==2){o.sugs=DEF.sugs.slice();o.v=2}return o}
 function save(){try{localStorage.setItem("cardpoints",JSON.stringify(S))}catch(e){}}
 function L(k){return I[S.lang][k]}
 function nm(i){return S.names[i]||L("dn")[i]}
@@ -161,7 +167,7 @@ $("thm").onclick=function(){S.theme=isDark()?"light":"dark";save();applyTheme();
 function applyLang(){
   document.documentElement.lang=S.lang;
   $("ttl").textContent=L("title");$("tSug").textContent=L("sug");$("tRm").textContent=L("rm");$("tNew").textContent=L("nw");
-  $("sugAdd").textContent=L("add");$("sugDone").textContent=L("done");$("undo").textContent=L("undo");$("tHist").textContent=L("hist");$("tBy").innerHTML=L("by")+' <b>Murad Mahmud</b>';
+  $("sugAdd").textContent=L("add");$("sugDone").textContent=L("done");$("sugReset").textContent=L("rst");$("undo").textContent=L("undo");$("tHist").textContent=L("hist");$("tBy").innerHTML=L("by")+' <b>Murad Mahmud</b>';
   $("lbn").classList.toggle("on",S.lang==="bn");$("len").classList.toggle("on",S.lang==="en");
   setReset();
   [0,1].forEach(function(i){var t=T[i];t.nm.placeholder=L("nameph");t.nm.value=nm(i);t.lbl.textContent=L("sug");t.inp.placeholder=L("own");t.go.textContent=L("add")});
@@ -238,6 +244,7 @@ function bn(s){return s.replace(/[০-৯]/g,function(c){return "০১২৩৪
 function renderSugs(){sl.innerHTML="";S.sugs.forEach(function(p,k){var b=document.createElement("button");b.className="tag"+(p<0?" neg":"");b.textContent=(p>0?"+":"")+p+" ✕";b.onclick=function(){S.sugs.splice(k,1);save();renderSugs();buildChips(false)};sl.appendChild(b)})}
 $("editBtn").onclick=function(){var on=ed.classList.toggle("on");this.classList.toggle("open",on);renderSugs()};
 $("sugDone").onclick=function(){ed.classList.remove("on");$("editBtn").classList.remove("open")};
+$("sugReset").onclick=function(){S.sugs=DEF.sugs.slice();save();renderSugs();buildChips(false)};
 $("sugAdd").onclick=function(){var p=parseInt(bn(sn.value.trim()).replace(/[−–—]/g,"-"),10);if(isNaN(p)||p===0)return;if(S.sugs.indexOf(p)<0&&S.sugs.length<16)S.sugs.push(p);sn.value="";save();renderSugs();buildChips(false)};
 
 /* ripple */
